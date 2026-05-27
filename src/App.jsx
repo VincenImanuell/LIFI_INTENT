@@ -3,6 +3,7 @@ import Hero from './components/Hero'
 import Comparison from './components/Comparison'
 import AddressDecoder from './components/AddressDecoder'
 import QuoteBuilder from './components/QuoteBuilder'
+import LifecycleStepper from './components/LifecycleStepper'
 import Footer from './components/Footer'
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Comparison />
         <AddressDecoder />
         <QuoteBuilder />
+        <LifecycleStepper />
       </main>
       <Footer />
     </div>
