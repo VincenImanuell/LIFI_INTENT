@@ -6,6 +6,7 @@ import QuoteBuilder from './components/QuoteBuilder'
 import LifecycleStepper from './components/LifecycleStepper'
 import OrderAnatomy from './components/OrderAnatomy'
 import OrderTypes from './components/OrderTypes'
+import SolverPreview from './components/SolverPreview'
 import Resources from './components/Resources'
 import Footer from './components/Footer'
 
@@ -21,6 +22,7 @@ function App() {
         <LifecycleStepper />
         <OrderAnatomy />
         <OrderTypes />
+        <SolverPreview />
         <Resources />
       </main>
       <Footer />

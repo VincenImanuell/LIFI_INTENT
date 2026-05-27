@@ -13,6 +13,7 @@ export default function Header() {
           <a href="#quote" className="hover:text-zinc-100 transition">Quote</a>
           <a href="#lifecycle" className="hover:text-zinc-100 transition">Lifecycle</a>
           <a href="#anatomy" className="hover:text-zinc-100 transition">Anatomy</a>
+          <a href="#solver" className="hover:text-zinc-100 transition">Solver</a>
           <a
             href="https://docs.li.fi/lifi-intents/introduction"
             target="_blank"
