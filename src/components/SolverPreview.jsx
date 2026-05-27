@@ -37,6 +37,71 @@ const QUOTE_ANNOTATIONS = {
   exclusiveFor: 'Your solver address. Establishes which solver gets first dibs during the exclusivity window.',
 }
 
+const ORACLES = [
+  {
+    name: 'Polymer',
+    type: 'Self-serve',
+    typeTone: 'sky',
+    batch: 'No (1 output per proof)',
+    latency: 'Very low',
+    note: 'Default oracle at LI.FI. Event-based proofs over IBC, cheap gas, near-real-time.',
+  },
+  {
+    name: 'Wormhole',
+    type: 'Self-serve',
+    typeTone: 'sky',
+    batch: 'Yes',
+    latency: 'Medium',
+    note: 'Decentralized 19-guardian set signs VAAs. Slower than Polymer but ubiquitous chain coverage.',
+  },
+  {
+    name: 'Hyperlane',
+    type: 'Automatic',
+    typeTone: 'emerald',
+    batch: 'Yes',
+    latency: 'Medium',
+    note: 'Customizable ISM lets you tune the security/cost trade-off. Strong censorship resistance.',
+  },
+  {
+    name: 'Chainlink CCIP',
+    type: 'Automatic',
+    typeTone: 'emerald',
+    batch: 'Yes',
+    latency: 'Medium-high',
+    note: 'SOC2 / ISO 27001 compliant oracle network. Good for compliance-bound flows.',
+  },
+  {
+    name: 'Axelar',
+    type: 'Automatic',
+    typeTone: 'emerald',
+    batch: 'Yes',
+    latency: 'Medium',
+    note: 'Proof-of-Stake validator network. Broad chain coverage including non-EVM.',
+  },
+  {
+    name: 'LayerZero',
+    type: 'Automatic',
+    typeTone: 'emerald',
+    batch: 'Yes',
+    latency: 'Medium',
+    note: 'DVN-based security model — customize who signs. Highest chain coverage, higher per-tx cost.',
+  },
+  {
+    name: 'OutputSettlerSimple',
+    type: 'Same-chain',
+    typeTone: 'fuchsia',
+    batch: 'N/A',
+    latency: 'Instant',
+    note: 'For same-chain intents the output settler self-attests. No cross-chain proof needed.',
+  },
+]
+
+const TYPE_TONE = {
+  sky: 'bg-sky-500/15 text-sky-200 ring-sky-500/30',
+  emerald: 'bg-emerald-500/15 text-emerald-200 ring-emerald-500/30',
+  fuchsia: 'bg-fuchsia-500/15 text-fuchsia-200 ring-fuchsia-500/30',
+}
+
 const VALIDATION_CHECKLIST = [
   { num: '01', title: 'fillDeadline budget', text: 'Enough time to fill on destination + handle source-chain finality.' },
   { num: '02', title: 'expires budget', text: 'Enough time to fill + relay proof + call finalise on origin.' },
@@ -188,7 +253,7 @@ export default function SolverPreview() {
           <AnnotatedJson value={STANDING_QUOTE} annotations={QUOTE_ANNOTATIONS} />
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" id="solver-validation">
           <h3 className="text-lg font-semibold text-zinc-100">Pre-fill validation</h3>
           <p className="text-sm text-zinc-500 mt-2 mb-4 leading-relaxed">
             The order server pre-filters, but on-chain anyone can emit <code className="font-mono text-zinc-300">Open</code> events.
@@ -210,6 +275,93 @@ export default function SolverPreview() {
               </li>
             ))}
           </ol>
+        </div>
+      </div>
+
+      <div className="mt-12">
+        <h3 className="text-lg font-semibold text-zinc-100">Choose your oracle</h3>
+        <p className="text-sm text-zinc-500 mt-2 mb-4 leading-relaxed">
+          Every intent specifies which validation layer carries proof of the destination fill back
+          to the origin chain. Solvers can only fill orders whose oracle they support — and the
+          oracle choice trades off speed, cost, and trust assumptions.
+        </p>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden">
+          <div className="hidden sm:grid grid-cols-12 text-xs uppercase tracking-wider text-zinc-500 bg-zinc-900/40 border-b border-zinc-800">
+            <div className="col-span-3 px-5 py-3">Oracle</div>
+            <div className="col-span-2 px-5 py-3">Submit mode</div>
+            <div className="col-span-2 px-5 py-3">Batch</div>
+            <div className="col-span-2 px-5 py-3">Latency</div>
+            <div className="col-span-3 px-5 py-3">Notable</div>
+          </div>
+          {ORACLES.map((o, i) => (
+            <div
+              key={o.name}
+              className={`grid grid-cols-12 text-sm ${i !== ORACLES.length - 1 ? 'border-b border-zinc-900' : ''}`}
+            >
+              <div className="col-span-12 sm:col-span-3 px-5 py-3 text-zinc-100 font-medium flex items-center gap-2">
+                {o.name}
+                <span className={`sm:hidden font-mono text-[10px] px-2 py-0.5 rounded ring-1 ${TYPE_TONE[o.typeTone]}`}>
+                  {o.type}
+                </span>
+              </div>
+              <div className="hidden sm:flex sm:col-span-2 px-5 py-3 items-center">
+                <span className={`font-mono text-[10px] px-2 py-0.5 rounded ring-1 ${TYPE_TONE[o.typeTone]}`}>
+                  {o.type}
+                </span>
+              </div>
+              <div className="col-span-6 sm:col-span-2 px-5 py-1 sm:py-3 text-zinc-400 text-xs sm:text-sm">
+                <span className="sm:hidden text-[10px] uppercase text-zinc-500 mr-2">Batch:</span>
+                {o.batch}
+              </div>
+              <div className="col-span-6 sm:col-span-2 px-5 py-1 sm:py-3 text-zinc-400 text-xs sm:text-sm">
+                <span className="sm:hidden text-[10px] uppercase text-zinc-500 mr-2">Latency:</span>
+                {o.latency}
+              </div>
+              <div className="col-span-12 sm:col-span-3 px-5 py-3 text-zinc-400 text-xs sm:text-sm leading-relaxed">
+                {o.note}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-10 grid sm:grid-cols-3 gap-5">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5">
+          <div className="text-xs uppercase tracking-wider text-orange-300/80 mb-2">Reputation</div>
+          <div className="text-lg font-semibold text-zinc-100 mb-2">Why your fill rate matters</div>
+          <p className="text-sm text-zinc-400 leading-relaxed">
+            The Order Server scores every registered solver on fill rate and fill speed. When users
+            issue Exclusive Limit Orders, the server combines reputation with price to pick whom
+            the order is briefly exclusive to. Miss too many fills → lose exclusivity priority →
+            lose flow.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5">
+          <div className="text-xs uppercase tracking-wider text-orange-300/80 mb-2">Dashboard</div>
+          <div className="text-lg font-semibold text-zinc-100 mb-2">What you'll see</div>
+          <ul className="text-sm text-zinc-400 leading-relaxed space-y-1.5">
+            <li>· Orders quoted</li>
+            <li>· Quotes submitted</li>
+            <li>· Orders filled</li>
+            <li>· Current reputation score</li>
+            <li>· Per-route performance breakdown</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5">
+          <div className="text-xs uppercase tracking-wider text-orange-300/80 mb-2">Start solving</div>
+          <div className="text-lg font-semibold text-zinc-100 mb-2">Ready to try?</div>
+          <p className="text-sm text-zinc-400 leading-relaxed mb-3">
+            Use testnet first — fund a wallet with Sepolia ETH, submit a tiny quote, watch an order
+            roll in, fill it from your inventory.
+          </p>
+          <a
+            href="https://devintents.li.fi"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex text-xs rounded-md border border-zinc-700 px-3 py-1.5 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 transition"
+          >
+            Open testnet solver UI ↗
+          </a>
         </div>
       </div>
     </Section>
