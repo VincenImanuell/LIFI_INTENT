@@ -1,13 +1,19 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Section from './Section'
 import { ROUTE_PRESETS, SAMPLE_USER, TOKEN_META } from '../lib/tokens'
 import { chainLookup } from '../lib/chains'
 import { encodeInteropEvm } from '../lib/interopAddress'
+import { fetchQuote, ApiError } from '../lib/quoteApi'
+import QuoteResult from './QuoteResult'
 
 export default function QuoteBuilder() {
   const [preset, setPreset] = useState(ROUTE_PRESETS[0])
   const [amount, setAmount] = useState(ROUTE_PRESETS[0].amount)
   const [user, setUser] = useState(SAMPLE_USER)
+  const [status, setStatus] = useState('idle') // idle | loading | success | error
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState(null)
+  const abortRef = useRef(null)
 
   const fromChain = chainLookup(preset.fromChainId)
   const toChain = chainLookup(preset.toChainId)
@@ -15,6 +21,24 @@ export default function QuoteBuilder() {
   const toMeta = TOKEN_META[preset.toTokenSymbol]
 
   const requestBody = buildRequestBody({ preset, amount, user, fromMeta })
+
+  async function onFetch() {
+    if (abortRef.current) abortRef.current.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setStatus('loading')
+    setError(null)
+    setResult(null)
+    try {
+      const { data, elapsedMs } = await fetchQuote(requestBody, { signal: controller.signal })
+      setResult({ data, elapsedMs, requestBody, preset, fromMeta, toMeta })
+      setStatus('success')
+    } catch (e) {
+      if (e.name === 'AbortError') return
+      setError(e instanceof ApiError ? { message: e.message, status: e.status, body: e.body } : { message: e.message })
+      setStatus('error')
+    }
+  }
 
   return (
     <Section
@@ -98,11 +122,19 @@ export default function QuoteBuilder() {
           </div>
 
           <button
-            disabled
-            className="mt-7 w-full rounded-md bg-zinc-100 text-zinc-900 px-4 py-3 text-sm font-medium opacity-60 cursor-not-allowed"
+            onClick={onFetch}
+            disabled={status === 'loading'}
+            className="mt-7 w-full rounded-md bg-zinc-100 text-zinc-900 px-4 py-3 text-sm font-semibold hover:bg-white transition disabled:opacity-60 disabled:cursor-wait"
           >
-            Fetch quote — wiring up next…
+            {status === 'loading' ? 'Fetching from order.li.fi…' : 'Fetch live quote →'}
           </button>
+
+          {status === 'error' && (
+            <div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <div className="font-medium">Request failed{error?.status ? ` (HTTP ${error.status})` : ''}</div>
+              <div className="text-red-300/80 mt-1">{error?.message}</div>
+            </div>
+          )}
 
           <details className="mt-6 group">
             <summary className="cursor-pointer text-xs uppercase tracking-wider text-zinc-500 hover:text-zinc-300">
@@ -114,6 +146,12 @@ export default function QuoteBuilder() {
           </details>
         </div>
       </div>
+
+      {status === 'success' && result && (
+        <div className="mt-8">
+          <QuoteResult {...result} />
+        </div>
+      )}
     </Section>
   )
 }
