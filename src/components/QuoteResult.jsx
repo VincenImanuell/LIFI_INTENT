@@ -1,4 +1,22 @@
 import { fromBaseUnits } from '../lib/tokens'
+import AnnotatedJson from './AnnotatedJson'
+
+const RESPONSE_ANNOTATIONS = {
+  order: 'The constructed StandardOrder — null at quote time. You build it yourself when submitting.',
+  validUntil: 'Unix timestamp after which this quote expires. Refresh if stale.',
+  quoteId: 'Pass this id with POST /orders/submit for preferential solver matching.',
+  preview: 'Expected input and output amounts for this quote.',
+  inputs: 'What the user locks on the origin chain.',
+  outputs: 'What the user receives on the destination chain.',
+  metadata: 'Quote-level metadata. exclusiveFor names the solver tagged for first dibs.',
+  exclusiveFor: 'Solver address holding short exclusivity. Encode into output.context to enforce on-chain.',
+  partialFill: 'Whether the solver will accept partial fills.',
+  failureHandling: 'What happens if the order is not filled by fillDeadline. refund-automatic = funds unlock to user.',
+  user: 'EIP-7930 interoperable address of the order owner / refund recipient.',
+  asset: 'EIP-7930 interoperable address of the token (chain + contract).',
+  receiver: 'EIP-7930 interoperable address that receives the output on the destination chain.',
+  amount: 'Base units (integer string). Apply token decimals to get a human number.',
+}
 
 export default function QuoteResult({ data, elapsedMs, preset, fromMeta, toMeta }) {
   const quote = data?.quotes?.[0]
@@ -44,14 +62,17 @@ export default function QuoteResult({ data, elapsedMs, preset, fromMeta, toMeta 
         <Row label="Failure handling" value={<code className="font-mono text-xs text-zinc-300">{quote.failureHandling || '—'}</code>} />
       </dl>
 
-      <details className="mt-5">
-        <summary className="cursor-pointer text-xs uppercase tracking-wider text-zinc-500 hover:text-zinc-300">
-          Raw response
-        </summary>
-        <pre className="mt-3 text-[11px] font-mono bg-zinc-900/70 border border-zinc-800 rounded-md p-3 overflow-x-auto text-zinc-300 leading-relaxed">
-{JSON.stringify(data, null, 2)}
-        </pre>
-      </details>
+      <div className="mt-6">
+        <div className="flex items-baseline justify-between mb-2">
+          <div className="text-xs uppercase tracking-wider text-zinc-500">
+            Annotated response
+          </div>
+          <div className="text-[10px] text-zinc-600">
+            Hints inline · <span className="text-emerald-400/80">// like this</span>
+          </div>
+        </div>
+        <AnnotatedJson value={data} annotations={RESPONSE_ANNOTATIONS} />
+      </div>
     </div>
   )
 }
