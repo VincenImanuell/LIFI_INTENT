@@ -1,5 +1,54 @@
 import { useState } from 'react'
 import Section from './Section'
+import AnnotatedJson from './AnnotatedJson'
+
+const STANDING_QUOTE = {
+  quotes: [
+    {
+      expiry: 1779912000,
+      fromChainId: '10',
+      toChainId: '42161',
+      fromAsset: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+      toAsset: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      fromDecimals: 6,
+      toDecimals: 6,
+      ranges: [
+        { minAmount: '10', maxAmount: '100', quote: '0.97' },
+        { minAmount: '100', maxAmount: '10000', quote: '0.995' },
+        { minAmount: '10000', maxAmount: '500000', quote: '0.999' },
+      ],
+      exclusiveFor: '0x7bb2b9b2cf209b88850cb744d9e38297905549c9',
+    },
+  ],
+}
+
+const QUOTE_ANNOTATIONS = {
+  expiry: 'User-side quote expiry. Quotes with shorter expiry than the user request are filtered out.',
+  fromChainId: 'Origin chain you can source tokens on.',
+  toChainId: 'Destination chain you will deliver to.',
+  fromAsset: 'Token you accept as input (native EVM address — no EIP-7930 wrapping at this layer).',
+  toAsset: 'Token you deliver as output.',
+  fromDecimals: 'Used by the order server only as an exchange-rate normalizer.',
+  toDecimals: 'Used by the order server only as an exchange-rate normalizer.',
+  ranges: 'Tiered pricing curve. Lower volume = worse rate; higher volume = better rate.',
+  minAmount: 'Lowest input amount (human units) this range covers.',
+  maxAmount: 'Highest input amount this range covers.',
+  quote: 'Output/input rate inside this range. 0.995 means user gets 0.5% slippage.',
+  exclusiveFor: 'Your solver address. Establishes which solver gets first dibs during the exclusivity window.',
+}
+
+const VALIDATION_CHECKLIST = [
+  { num: '01', title: 'fillDeadline budget', text: 'Enough time to fill on destination + handle source-chain finality.' },
+  { num: '02', title: 'expires budget', text: 'Enough time to fill + relay proof + call finalise on origin.' },
+  { num: '03', title: 'Oracle pairing', text: 'inputOracle and output.oracle belong to the same validation layer you support.' },
+  { num: '04', title: 'Input tokens whitelisted', text: 'Every input token is one you trust. Recipient not on a USDC-style blacklist.' },
+  { num: '05', title: 'output.chainId whitelisted', text: 'You actually want to operate on that destination chain.' },
+  { num: '06', title: 'output.settler whitelisted', text: 'The destination OutputSettler is a contract you trust.' },
+  { num: '07', title: 'context decodes', text: 'output.context parses cleanly and the order type is one your bot handles.' },
+  { num: '08', title: 'Inventory check', text: 'You hold ≥ output.amount of output.token on the destination chain right now.' },
+  { num: '09', title: 'Calldata safety', text: 'If output.call is non-empty, it executes safely. Length ≤ 65,535 bytes.' },
+  { num: '10', title: 'Multi-output ordering', text: 'You can fill every output, and output[0] proposedSolver == your identifier.' },
+]
 
 const FLOW = [
   {
@@ -124,6 +173,43 @@ export default function SolverPreview() {
             <span className="text-xs text-orange-300">{current.actor}</span>
           </div>
           <p className="mt-3 text-zinc-300 leading-relaxed">{current.detail}</p>
+        </div>
+      </div>
+
+      <div className="mt-10 grid lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <h3 className="text-lg font-semibold text-zinc-100">Standing quote payload</h3>
+          <p className="text-sm text-zinc-500 mt-2 mb-4 leading-relaxed">
+            Solvers don't respond to individual quote requests — they push tiered price curves
+            ahead of time. A new submission to{' '}
+            <code className="font-mono text-zinc-300">/quotes/submit</code> overwrites the prior
+            entry for the same route, so quotes can be long-lived and refreshed lazily.
+          </p>
+          <AnnotatedJson value={STANDING_QUOTE} annotations={QUOTE_ANNOTATIONS} />
+        </div>
+
+        <div className="lg:col-span-2">
+          <h3 className="text-lg font-semibold text-zinc-100">Pre-fill validation</h3>
+          <p className="text-sm text-zinc-500 mt-2 mb-4 leading-relaxed">
+            The order server pre-filters, but on-chain anyone can emit <code className="font-mono text-zinc-300">Open</code> events.
+            Solvers must independently validate every order before committing inventory.
+          </p>
+          <ol className="space-y-2">
+            {VALIDATION_CHECKLIST.map((c) => (
+              <li
+                key={c.num}
+                className="rounded-md border border-zinc-800 bg-zinc-900/30 px-3 py-2.5 flex gap-3"
+              >
+                <span className="font-mono text-[10px] text-orange-300/80 mt-0.5 flex-shrink-0">
+                  {c.num}
+                </span>
+                <div>
+                  <div className="text-sm text-zinc-200 font-medium leading-snug">{c.title}</div>
+                  <div className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{c.text}</div>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </Section>
