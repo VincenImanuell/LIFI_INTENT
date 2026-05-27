@@ -5,6 +5,7 @@ import AddressDecoder from './components/AddressDecoder'
 import QuoteBuilder from './components/QuoteBuilder'
 import LifecycleStepper from './components/LifecycleStepper'
 import OrderAnatomy from './components/OrderAnatomy'
+import OrderTypes from './components/OrderTypes'
 import Footer from './components/Footer'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <QuoteBuilder />
         <LifecycleStepper />
         <OrderAnatomy />
+        <OrderTypes />
       </main>
       <Footer />
     </div>
