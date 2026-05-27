@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { fromBaseUnits } from '../lib/tokens'
 import AnnotatedJson from './AnnotatedJson'
 
@@ -30,7 +31,6 @@ export default function QuoteResult({ data, elapsedMs, preset, fromMeta, toMeta 
 
   const inputAmount = quote.preview?.inputs?.[0]?.amount
   const outputAmount = quote.preview?.outputs?.[0]?.amount
-  const expiresIn = quote.validUntil ? Math.max(0, quote.validUntil - Math.floor(Date.now() / 1000)) : null
 
   return (
     <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] p-5 sm:p-7">
@@ -52,7 +52,7 @@ export default function QuoteResult({ data, elapsedMs, preset, fromMeta, toMeta 
 
       <dl className="mt-5 grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
         <Row label="quoteId" value={<code className="font-mono text-xs text-zinc-300 break-all">{quote.quoteId}</code>} />
-        <Row label="Valid for" value={expiresIn !== null ? `${expiresIn}s` : '—'} />
+        <Row label="Valid for" value={quote.validUntil ? <Countdown until={quote.validUntil} /> : '—'} />
         <Row label="Exclusive solver" value={
           quote.metadata?.exclusiveFor
             ? <code className="font-mono text-xs text-zinc-300 break-all">{quote.metadata.exclusiveFor}</code>
@@ -107,4 +107,14 @@ function Row({ label, value }) {
       <dd className="text-zinc-200">{value}</dd>
     </div>
   )
+}
+
+function Countdown({ until }) {
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000))
+  useEffect(() => {
+    const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const left = Math.max(0, until - now)
+  return <span className={left < 10 ? 'text-amber-300' : ''}>{left}s</span>
 }
