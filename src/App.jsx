@@ -2,6 +2,7 @@ import Header from './components/Header'
 import Hero from './components/Hero'
 import Comparison from './components/Comparison'
 import AddressDecoder from './components/AddressDecoder'
+import QuoteBuilder from './components/QuoteBuilder'
 import Footer from './components/Footer'
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
         <Hero />
         <Comparison />
         <AddressDecoder />
+        <QuoteBuilder />
       </main>
       <Footer />
     </div>
