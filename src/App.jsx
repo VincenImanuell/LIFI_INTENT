@@ -1,6 +1,7 @@
 import Header from './components/Header'
 import Hero from './components/Hero'
 import Comparison from './components/Comparison'
+import AddressDecoder from './components/AddressDecoder'
 import Footer from './components/Footer'
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
       <main className="flex-1">
         <Hero />
         <Comparison />
+        <AddressDecoder />
       </main>
       <Footer />
     </div>
