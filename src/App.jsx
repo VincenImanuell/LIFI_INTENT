@@ -4,6 +4,7 @@ import Comparison from './components/Comparison'
 import AddressDecoder from './components/AddressDecoder'
 import QuoteBuilder from './components/QuoteBuilder'
 import LifecycleStepper from './components/LifecycleStepper'
+import OrderAnatomy from './components/OrderAnatomy'
 import Footer from './components/Footer'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <AddressDecoder />
         <QuoteBuilder />
         <LifecycleStepper />
+        <OrderAnatomy />
       </main>
       <Footer />
     </div>
